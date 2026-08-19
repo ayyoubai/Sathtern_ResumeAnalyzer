@@ -1,0 +1,784 @@
+<div class="page">
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
+  <header class="header">
+
+    <div class="brand">
+
+      <div class="brand-mark">
+        S
+      </div>
+
+      <div>
+        <div class="brand-name">
+          Sathtern
+        </div>
+
+        <div class="brand-product">
+          Resume Analyzer
+        </div>
+      </div>
+
+    </div>
+
+    <div class="header-badge">
+      AI Powered
+    </div>
+
+  </header>
+
+
+  <!-- =====================================================
+       HERO
+  ====================================================== -->
+
+  @if (!analysis) {
+
+    <main class="hero">
+
+      <div class="hero-content">
+
+        <div class="eyebrow">
+          AI-POWERED RESUME ANALYSIS
+        </div>
+
+        <h1>
+          Make your resume
+          <span>job-ready.</span>
+        </h1>
+
+        <p class="hero-description">
+          Upload your CV and discover how well it matches
+          your target position. Get actionable insights,
+          missing skills and recommendations in seconds.
+        </p>
+
+
+        <!-- =================================================
+             UPLOAD CARD
+        ================================================== -->
+
+        <section class="analyzer-card">
+
+          <div class="card-header">
+
+            <div>
+
+              <h2>
+                Analyze your resume
+              </h2>
+
+              <p>
+                Upload a PDF version of your CV.
+              </p>
+
+            </div>
+
+            <div class="secure-badge">
+              PDF
+            </div>
+
+          </div>
+
+
+          <!-- =================================================
+               DROP ZONE
+          ================================================== -->
+
+          @if (!selectedFile) {
+
+            <label
+              class="drop-zone"
+              [class.dragging]="isDragging"
+              for="resumeInput"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)"
+            >
+
+              <div class="upload-icon">
+                ↑
+              </div>
+
+              <h3>
+                Drop your resume here
+              </h3>
+
+              <p>
+                or
+                <span>
+                  browse files
+                </span>
+              </p>
+
+              <small>
+                PDF files only
+              </small>
+
+            </label>
+
+            <input
+              id="resumeInput"
+              class="file-input"
+              type="file"
+              accept=".pdf,application/pdf"
+              (change)="onFileSelected($event)"
+            />
+
+          }
+
+
+          <!-- =================================================
+               SELECTED FILE
+          ================================================== -->
+
+          @if (selectedFile) {
+
+            <div class="selected-file">
+
+              <div class="file-icon">
+                PDF
+              </div>
+
+              <div class="file-info">
+
+                <strong>
+                  {{ selectedFile.name }}
+                </strong>
+
+                <span>
+                  {{ (selectedFile.size / 1024 / 1024).toFixed(2) }}
+                  MB
+                </span>
+
+              </div>
+
+              <button
+                type="button"
+                class="remove-button"
+                (click)="removeFile()"
+              >
+                ×
+              </button>
+
+            </div>
+
+          }
+
+
+          <!-- =================================================
+               TARGET ROLE
+          ================================================== -->
+
+          <div class="form-group">
+
+            <label for="targetRole">
+              Target position
+            </label>
+
+            <div class="select-wrapper">
+
+              <select
+                id="targetRole"
+                [(ngModel)]="targetRole"
+              >
+
+                @for (role of roles; track role) {
+
+                  <option [value]="role">
+                    {{ role }}
+                  </option>
+
+                }
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <!-- =================================================
+               ERROR
+          ================================================== -->
+
+          @if (error) {
+
+            <div class="error-message">
+
+              <span>!</span>
+
+              {{ error }}
+
+            </div>
+
+          }
+
+
+          <!-- =================================================
+               BUTTON
+          ================================================== -->
+
+          <button
+            type="button"
+            class="analyze-button"
+            [disabled]="
+              !selectedFile ||
+              uploading ||
+              analyzing
+            "
+            (click)="uploadAndAnalyze()"
+          >
+
+            @if (uploading) {
+
+              <span class="spinner"></span>
+
+              Uploading resume...
+
+            } @else if (analyzing) {
+
+              <span class="spinner"></span>
+
+              Analyzing with AI...
+
+            } @else {
+
+              Analyze Resume
+
+              <span>
+                →
+              </span>
+
+            }
+
+          </button>
+
+
+          <div class="privacy-note">
+
+            <span>●</span>
+
+            Your resume is processed securely
+            for this analysis.
+
+          </div>
+
+        </section>
+
+      </div>
+
+    </main>
+
+  }
+
+
+  <!-- =====================================================
+       ANALYSIS RESULT
+  ====================================================== -->
+
+  @if (analysis) {
+
+    <main
+      id="analysis-result"
+      class="results-page"
+    >
+
+      <!-- =================================================
+           RESULT HEADER
+      ================================================== -->
+
+      <div class="results-top">
+
+        <div>
+
+          <div class="eyebrow">
+            RESUME ANALYSIS
+          </div>
+
+          <h1>
+            Your resume results
+          </h1>
+
+          <p>
+            AI-powered compatibility analysis for
+            <strong>
+              {{ analysis.analysis.target_role }}
+            </strong>
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="new-analysis-button"
+          (click)="newAnalysis()"
+        >
+          ← New analysis
+        </button>
+
+      </div>
+
+
+      <!-- =================================================
+           RESUME META
+      ================================================== -->
+
+      <div class="resume-meta">
+
+        <div class="resume-file-icon">
+          PDF
+        </div>
+
+        <div>
+
+          <strong>
+            {{ selectedFile?.name }}
+          </strong>
+
+          <span>
+            Target position:
+            {{ analysis.analysis.target_role }}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           SCORE CARD
+      ================================================== -->
+
+      <section class="score-card">
+
+        <div class="score-info">
+
+          <div class="section-label">
+            OVERALL MATCH
+          </div>
+
+          <h2>
+            {{ scoreLabel }}
+          </h2>
+
+          <p>
+            Your resume matches
+            <strong>
+              {{ analysis.analysis.match_score }}%
+            </strong>
+            of the skills expected for this position.
+          </p>
+
+        </div>
+
+
+        <div
+          class="score-circle"
+          [class]="scoreClass"
+          [style.--score]="analysis.analysis.match_score"
+        >
+
+          <div class="score-circle-inner">
+
+            <strong>
+              {{ analysis.analysis.match_score }}
+            </strong>
+
+            <span>
+              / 100
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           TWO COLUMNS
+      ================================================== -->
+
+      <div class="results-grid">
+
+        <!-- =================================================
+             STRENGTHS
+        ================================================== -->
+
+        <section class="result-card">
+
+          <div class="result-card-title">
+
+            <div class="title-icon success">
+              ✓
+            </div>
+
+            <div>
+
+              <h2>
+                Strengths
+              </h2>
+
+              <p>
+                What makes your profile relevant
+              </p>
+
+            </div>
+
+          </div>
+
+          @if (
+            analysis.analysis.strengths.length > 0
+          ) {
+
+            <ul class="result-list">
+
+              @for (
+                strength of analysis.analysis.strengths;
+                track strength
+              ) {
+
+                <li>
+                  <span class="list-check">
+                    ✓
+                  </span>
+
+                  {{ strength }}
+                </li>
+
+              }
+
+            </ul>
+
+          } @else {
+
+            <div class="empty-state">
+              No strengths identified.
+            </div>
+
+          }
+
+        </section>
+
+
+        <!-- =================================================
+             MISSING SKILLS
+        ================================================== -->
+
+        <section class="result-card">
+
+          <div class="result-card-title">
+
+            <div class="title-icon warning">
+              !
+            </div>
+
+            <div>
+
+              <h2>
+                Missing skills
+              </h2>
+
+              <p>
+                Skills worth developing
+              </p>
+
+            </div>
+
+          </div>
+
+          @if (
+            analysis.analysis.missing_skills.length > 0
+          ) {
+
+            <div class="skill-tags">
+
+              @for (
+                skill of analysis.analysis.missing_skills;
+                track skill
+              ) {
+
+                <span class="skill-tag">
+                  {{ skill }}
+                </span>
+
+              }
+
+            </div>
+
+          } @else {
+
+            <div class="empty-state">
+              No important missing skills detected.
+            </div>
+
+          }
+
+        </section>
+
+      </div>
+
+
+      <!-- =================================================
+           SKILLS MATCH
+      ================================================== -->
+
+      <section class="result-card skills-card">
+
+        <div class="result-card-title">
+
+          <div class="title-icon blue">
+            ✦
+          </div>
+
+          <div>
+
+            <h2>
+              Skills match
+            </h2>
+
+            <p>
+              Compatibility between your CV and the role
+            </p>
+
+          </div>
+
+        </div>
+
+
+        @if (
+          analysis.analysis.skills_match.length > 0
+        ) {
+
+          <div class="skills-list">
+
+            @for (
+              item of analysis.analysis.skills_match;
+              track item.skill
+            ) {
+
+              <div class="skill-row">
+
+                <div class="skill-name">
+                  {{ item.skill }}
+                </div>
+
+                <div class="skill-progress">
+
+                  <div class="progress-track">
+
+                    <div
+                      class="progress-bar"
+                      [class.strong]="item.status === 'strong'"
+                      [class.partial]="item.status === 'partial'"
+                      [class.missing]="item.status === 'missing'"
+                      [style.width.%]="
+                        getSkillWidth(item.status)
+                      "
+                    ></div>
+
+                  </div>
+
+                </div>
+
+                <div
+                  class="skill-status"
+                  [class.strong]="item.status === 'strong'"
+                  [class.partial]="item.status === 'partial'"
+                  [class.missing]="item.status === 'missing'"
+                >
+
+                  {{ item.status }}
+
+                </div>
+
+              </div>
+
+            }
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            No skills were analyzed.
+          </div>
+
+        }
+
+      </section>
+
+
+      <!-- =================================================
+           RECOMMENDATIONS
+      ================================================== -->
+
+      <section class="result-card">
+
+        <div class="result-card-title">
+
+          <div class="title-icon purple">
+            →
+          </div>
+
+          <div>
+
+            <h2>
+              Recommendations
+            </h2>
+
+            <p>
+              Actions to improve your career match
+            </p>
+
+          </div>
+
+        </div>
+
+
+        @if (
+          analysis.analysis.recommendations.length > 0
+        ) {
+
+          <div class="recommendations">
+
+            @for (
+              recommendation of analysis.analysis.recommendations;
+              track recommendation;
+              let i = $index
+            ) {
+
+              <div class="recommendation">
+
+                <span>
+                  {{ (i + 1).toString().padStart(2, '0') }}
+                </span>
+
+                <p>
+                  {{ recommendation }}
+                </p>
+
+              </div>
+
+            }
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            No additional recommendations.
+          </div>
+
+        }
+
+      </section>
+
+
+      <!-- =================================================
+           CV IMPROVEMENTS
+      ================================================== -->
+
+      <section class="result-card">
+
+        <div class="result-card-title">
+
+          <div class="title-icon orange">
+            ✎
+          </div>
+
+          <div>
+
+            <h2>
+              CV improvements
+            </h2>
+
+            <p>
+              Suggestions to make your resume stronger
+            </p>
+
+          </div>
+
+        </div>
+
+
+        @if (
+          analysis.analysis.cv_improvements.length > 0
+        ) {
+
+          <div class="improvements">
+
+            @for (
+              improvement of analysis.analysis.cv_improvements;
+              track improvement
+            ) {
+
+              <div class="improvement">
+
+                <span>
+                  +
+                </span>
+
+                <p>
+                  {{ improvement }}
+                </p>
+
+              </div>
+
+            }
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            No additional improvements identified.
+          </div>
+
+        }
+
+      </section>
+
+
+      <!-- =================================================
+           FOOTER ACTION
+      ================================================== -->
+
+      <div class="result-footer">
+
+        <button
+          type="button"
+          class="new-analysis-button large"
+          (click)="newAnalysis()"
+        >
+          Analyze another resume →
+        </button>
+
+      </div>
+
+    </main>
+
+  }
+
+
+  <!-- =====================================================
+       FOOTER
+  ====================================================== -->
+
+  <footer class="footer">
+
+    <span>
+      Sathtern Resume Analyzer
+    </span>
+
+    <span>
+      AI-powered career insights
+    </span>
+
+  </footer>
+
+</div>

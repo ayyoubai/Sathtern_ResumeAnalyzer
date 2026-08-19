@@ -1,9 +1,9 @@
 import uuid
-
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from io import BytesIO
 from pypdf import PdfReader
-
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.parser import (
     clean_extracted_text,
     extract_email,
@@ -11,23 +11,26 @@ from app.parser import (
     extract_name,
     extract_location
 )
-
 from app.schemas import AnalyzeRequest
-
 from app.services.ai_service import (
     analyze_resume,
     generate_resume_analysis
 )
-
-
 # ============================================================
 # APPLICATION
 # ============================================================
 
-app = FastAPI(
-    title="Sathtern Resume Analyzer"
-)
+app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:4200",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ============================================================
 # IN-MEMORY RESUME STORE
