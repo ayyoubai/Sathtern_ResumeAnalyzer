@@ -1,78 +1,44 @@
-# Sathtern Resume Analyzer & AI Chatbot
+# Sathtern Resume Analyzer
 
-> AI-powered recruitment assistant for CV analysis, job matching and conversational career assistance.
+> AI-powered Resume Analyzer for evaluating CVs against a target job position.
 
 ## 📌 Overview
 
-**Sathtern Resume Analyzer & AI Chatbot** is an AI-powered web application designed to assist candidates and recruiters in analyzing resumes and interacting with an intelligent career chatbot.
+**Sathtern Resume Analyzer** is an AI-powered web application designed to analyze a candidate's resume and evaluate its compatibility with a selected target position.
 
-The project is developed as a modular application with two main AI features:
+The application allows a user to upload a CV in PDF format, select a target job role, and receive a structured AI-powered analysis of the resume.
 
-1. **Resume Analyzer** — analyzes a candidate's CV according to a selected target position.
-2. **AI Chatbot** — provides conversational assistance related to careers, CVs, job applications and professional development.
-
-The main objective is to build a practical AI recruitment assistant capable of combining structured resume analysis with natural-language interaction.
+The goal is to help candidates better understand how well their CV matches a specific position and identify the areas that can be improved.
 
 ---
 
-# 🎯 Project Objectives
+# 🎯 Objectives
 
-The project aims to:
+The main objectives of the Resume Analyzer are to:
 
-- Automatically analyze PDF resumes.
-- Extract relevant information from resumes.
-- Evaluate the compatibility between a resume and a target position.
-- Identify candidate strengths.
+- Upload and process CVs in PDF format.
+- Analyze the content of a candidate's resume using Artificial Intelligence.
+- Evaluate the compatibility between the CV and a target position.
+- Calculate a resume/job match score.
+- Estimate the confidence of the selected target role.
+- Identify the candidate's main strengths.
 - Detect missing or insufficient skills.
-- Calculate a matching score.
-- Estimate confidence regarding the selected role.
+- Compare individual skills with the target role.
 - Provide personalized recommendations.
 - Suggest improvements to the candidate's CV.
-- Provide an AI-powered conversational chatbot.
-- Build a clean and scalable architecture that can be extended with additional AI features.
+- Return structured analysis data that can be easily consumed by the frontend.
 
 ---
 
-# 🧩 Main Features
+# ✨ Features
 
-## 1. Resume Analyzer
+## 📄 PDF Resume Upload
 
-The Resume Analyzer allows the user to upload a PDF resume and select a target position.
+Users can upload their CV directly from the application.
 
-### Supported target positions
+The frontend accepts PDF files only and performs basic validation before sending the file to the backend.
 
-The current application supports several target roles:
-
-- Full Stack Developer
-- Frontend Developer
-- Backend Developer
-- Software Engineer
-- DevOps Engineer
-- Data Analyst
-- Data Scientist
-- AI Engineer
-- Machine Learning Engineer
-- Cybersecurity Engineer
-
-### Analysis workflow
-
-The current workflow is:
+Supported format:
 
 ```text
-User selects a PDF CV
-        ↓
-Frontend validates the file
-        ↓
-CV uploaded to backend
-        ↓
-Backend creates a resume_id
-        ↓
-User selects target role
-        ↓
-Frontend sends analysis request
-        ↓
-AI analyzes the resume
-        ↓
-Structured analysis returned
-        ↓
-Frontend displays results
+PDF
