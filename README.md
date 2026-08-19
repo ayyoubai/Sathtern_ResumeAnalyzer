@@ -6,9 +6,16 @@
 
 **Sathtern Resume Analyzer** is an AI-powered web application designed to analyze a candidate's resume and evaluate its compatibility with a selected target position.
 
-The application allows a user to upload a CV in PDF format, select a target job role, and receive a structured AI-powered analysis of the resume.
+The application allows a user to:
 
-The goal is to help candidates better understand how well their CV matches a specific position and identify the areas that can be improved.
+1. Upload a CV in PDF format.
+2. Select a target job position.
+3. Send the CV to the backend.
+4. Analyze the resume using Artificial Intelligence.
+5. Receive a structured analysis.
+6. Visualize the results directly in the frontend.
+
+The main purpose of the application is to help candidates understand how well their CV matches a specific job position and identify the skills and areas that should be improved.
 
 ---
 
@@ -17,16 +24,16 @@ The goal is to help candidates better understand how well their CV matches a spe
 The main objectives of the Resume Analyzer are to:
 
 - Upload and process CVs in PDF format.
-- Analyze the content of a candidate's resume using Artificial Intelligence.
-- Evaluate the compatibility between the CV and a target position.
+- Analyze resume content using Artificial Intelligence.
+- Evaluate the compatibility between a CV and a target position.
 - Calculate a resume/job match score.
-- Estimate the confidence of the selected target role.
+- Estimate confidence in the selected target role.
 - Identify the candidate's main strengths.
 - Detect missing or insufficient skills.
-- Compare individual skills with the target role.
+- Compare individual skills against the target position.
 - Provide personalized recommendations.
-- Suggest improvements to the candidate's CV.
-- Return structured analysis data that can be easily consumed by the frontend.
+- Suggest improvements to the CV.
+- Return structured analysis data to the frontend.
 
 ---
 
@@ -36,7 +43,7 @@ The main objectives of the Resume Analyzer are to:
 
 Users can upload their CV directly from the application.
 
-The frontend accepts PDF files only and performs basic validation before sending the file to the backend.
+The frontend accepts PDF files only and performs client-side validation before sending the file to the backend.
 
 Supported format:
 
