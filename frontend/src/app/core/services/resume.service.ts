@@ -13,6 +13,10 @@ export class ResumeService {
 
   private readonly API_URL = 'http://localhost:8000/api';
 
+  /**
+   * Uploads a PDF resume to the backend.
+   * Returns a resume_id to be used for analysis.
+   */
   uploadResume(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
@@ -23,6 +27,9 @@ export class ResumeService {
     );
   }
 
+  /**
+   * Analyzes a previously uploaded resume against a target job position.
+   */
   analyzeResume(
     resumeId: string,
     targetRole?: string

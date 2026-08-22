@@ -8,13 +8,11 @@ from pydantic import BaseModel, Field
 # ============================================================
 
 class PersonalInfo(BaseModel):
+    """Candidate personal contact information."""
 
     name: Optional[str] = None
-
     email: Optional[str] = None
-
     phone: Optional[str] = None
-
     location: Optional[str] = None
 
 
@@ -23,17 +21,13 @@ class PersonalInfo(BaseModel):
 # ============================================================
 
 class Experience(BaseModel):
+    """Professional work experience entry."""
 
     title: Optional[str] = None
-
     company: Optional[str] = None
-
     location: Optional[str] = None
-
     start_date: Optional[str] = None
-
     end_date: Optional[str] = None
-
     description: Optional[str] = None
 
 
@@ -42,21 +36,15 @@ class Experience(BaseModel):
 # ============================================================
 
 class Education(BaseModel):
+    """Academic education and training entry."""
 
     degree: Optional[str] = None
-
     institution: Optional[str] = None
-
     location: Optional[str] = None
-
     start_date: Optional[str] = None
-
     end_date: Optional[str] = None
-
     start_year: Optional[int] = None
-
     end_year: Optional[int] = None
-
     description: Optional[str] = None
 
 
@@ -65,17 +53,13 @@ class Education(BaseModel):
 # ============================================================
 
 class Project(BaseModel):
+    """Academic or personal project entry."""
 
     title: Optional[str] = None
-
     institution: Optional[str] = None
-
     location: Optional[str] = None
-
     description: Optional[str] = None
-
     start_date: Optional[str] = None
-
     end_date: Optional[str] = None
 
 
@@ -84,6 +68,7 @@ class Project(BaseModel):
 # ============================================================
 
 class ResumeData(BaseModel):
+    """Structured resume data extracted from a PDF."""
 
     personal_info: PersonalInfo = Field(
         default_factory=PersonalInfo
@@ -115,9 +100,9 @@ class ResumeData(BaseModel):
 # ============================================================
 
 class AnalyzeRequest(BaseModel):
+    """Request payload for resume analysis against a target role."""
 
     text: str | None = None
-
     target_role: Optional[str] = None
 
 
@@ -126,9 +111,9 @@ class AnalyzeRequest(BaseModel):
 # ============================================================
 
 class SkillMatch(BaseModel):
+    """Skill match status: strong or missing."""
 
     skill: str
-
     status: str
 
 
@@ -137,34 +122,35 @@ class SkillMatch(BaseModel):
 # ============================================================
 
 class ResumeAnalysis(BaseModel):
+    """Complete AI-powered resume analysis result."""
 
-    # Poste sélectionné par l'utilisateur
+    # Target job position selected by the user
     target_role: str
 
-    # Compatibilité du CV avec le poste
+    # Compatibility score between resume and job position (0-100)
     match_score: int
 
-    # Points forts
+    # Candidate main strengths
     strengths: list[str] = Field(
         default_factory=list
     )
 
-    # Compétences importantes absentes
+    # Important skills missing from the resume
     missing_skills: list[str] = Field(
         default_factory=list
     )
 
-    # Correspondance des compétences
+    # Individual skill match against the target position
     skills_match: list[SkillMatch] = Field(
         default_factory=list
     )
 
-    # Recommandations
+    # Personalized recommendations for the candidate
     recommendations: list[str] = Field(
         default_factory=list
     )
 
-    # Améliorations du CV
+    # Suggested CV improvements
     cv_improvements: list[str] = Field(
         default_factory=list
     )

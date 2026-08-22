@@ -1,26 +1,33 @@
 import uuid
-from fastapi import FastAPI, UploadFile, File, HTTPException
 from io import BytesIO
-from pypdf import PdfReader
-from fastapi import FastAPI
+
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pypdf import PdfReader
+
 from app.parser import (
     clean_extracted_text,
     extract_email,
     extract_phone,
     extract_name,
-    extract_location
+    extract_location,
 )
 from app.schemas import AnalyzeRequest
 from app.services.ai_service import (
     analyze_resume,
-    generate_resume_analysis
+    generate_resume_analysis,
 )
+
+
 # ============================================================
 # APPLICATION
 # ============================================================
 
-app = FastAPI()
+app = FastAPI(
+    title="Sathtern Resume Analyzer API",
+    description="AI-powered resume analysis and job matching API.",
+    version="1.0.0",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,31 +39,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # ============================================================
 # IN-MEMORY RESUME STORE
 # ============================================================
 #
-# NOTE: stockage en memoire uniquement (pas de DB).
-# Suffisant pour un usage internship / demo, mais les donnees
-# sont perdues au redemarrage du serveur et non partagees entre
-# plusieurs workers/instances.
+# NOTE: In-memory storage only (no database).
+# Sufficient for internship / demo usage, but data is lost
+# on server restart and not shared across workers/instances.
 #
-# A remplacer par Redis/DB si deploiement multi-instance.
+# Replace with Redis/DB for multi-instance deployment.
 # ============================================================
 
 resume_store: dict[str, dict] = {}
 
 
 # ============================================================
-# HEALTH
+# HEALTH CHECK
 # ============================================================
 
 @app.get("/health")
 def health():
-
-    return {
-        "status": "ok"
-    }
+    """Health check endpoint."""
+    return {"status": "ok"}
 
 
 # ============================================================
@@ -67,63 +72,59 @@ def health():
 async def upload_resume(
     file: UploadFile = File(...)
 ):
+    """
+    Uploads a PDF resume, extracts text, and performs AI analysis.
 
-    # ========================================================
-    # READ FILE
-    # ========================================================
+    Returns a resume_id to be used with /api/resume/analyze/{resume_id}.
+    """
 
+    # Validate file type
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF files are supported.",
+        )
+
+    # Read file contents
     contents = await file.read()
 
-    # ========================================================
-    # READ PDF
-    # ========================================================
+    if not contents:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file is empty.",
+        )
 
-    pdf = PdfReader(
-        BytesIO(contents)
-    )
+    # Parse PDF
+    try:
+        pdf = PdfReader(BytesIO(contents))
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to parse PDF: {str(e)}",
+        )
 
     text = ""
-
     for page in pdf.pages:
-
         page_text = page.extract_text()
-
         if page_text:
-
             text += page_text + "\n"
 
-    # ========================================================
-    # CLEAN TEXT
-    # ========================================================
+    if not text.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="No text could be extracted from the PDF.",
+        )
 
-    clean_text = clean_extracted_text(
-        text
-    )
+    # Clean extracted text
+    clean_text = clean_extracted_text(text)
 
-    # ========================================================
-    # REGEX EXTRACTION
-    # ========================================================
+    # Regex extraction of basic info
+    name = extract_name(clean_text)
+    email = extract_email(clean_text)
+    phone = extract_phone(clean_text)
+    location = extract_location(clean_text)
 
-    name = extract_name(
-        clean_text
-    )
-
-    email = extract_email(
-        clean_text
-    )
-
-    phone = extract_phone(
-        clean_text
-    )
-
-    location = extract_location(
-        clean_text
-    )
-
-    # ========================================================
-    # DEBUG
-    # ========================================================
-
+    # Debug output
     print()
     print("========== EXTRACTED INFO ==========")
     print("NAME     :", name)
@@ -133,65 +134,44 @@ async def upload_resume(
     print("====================================")
     print()
 
-    # ========================================================
-    # AI ANALYSIS
-    # ========================================================
+    # AI analysis
+    try:
+        resume_data = analyze_resume(
+            clean_text,
+            name=name,
+            email=email,
+            phone=phone,
+            location=location,
+        )
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"AI analysis failed: {str(e)}",
+        )
 
-    resume_data = analyze_resume(
-
-        clean_text,
-
-        name=name,
-
-        email=email,
-
-        phone=phone,
-
-        location=location
-    )
-
-    # ========================================================
-    # STORE FOR LATER ANALYSIS
-    # ========================================================
-
+    # Store for later analysis
     resume_id = str(uuid.uuid4())
-
     resume_store[resume_id] = {
         "text": clean_text,
         "data": resume_data,
     }
 
-    # ========================================================
-    # RESPONSE
-    # ========================================================
-
+    # Build response
     return {
-
         "resume_id": resume_id,
-
         "filename": file.filename,
-
         "content_type": file.content_type,
-
         "pages": len(pdf.pages),
-
         "text": clean_text,
-
         "data": {
-
             **resume_data.model_dump(),
-
             "personal_info": {
-
                 "name": name,
-
                 "email": email,
-
                 "phone": phone,
-
-                "location": location
-            }
-        }
+                "location": location,
+            },
+        },
     }
 
 
@@ -199,39 +179,51 @@ async def upload_resume(
 # RESUME ANALYSIS (SKILLS + FEEDBACK)
 # ============================================================
 #
-# A appeler APRES /api/resume/upload, avec le resume_id
-# retourne par cet endpoint.
+# Call AFTER /api/resume/upload, using the resume_id
+# returned by that endpoint.
 #
-# Body optionnel : {"target_role": "Data Analyst"}
-# Si omis, le domaine est detecte automatiquement par l'IA
-# a partir du contenu du CV.
+# Optional body: {"target_role": "Data Analyst"}
+# If omitted, the target role is required and must be provided.
 # ============================================================
 
 @app.post("/api/resume/analyze/{resume_id}")
 async def analyze_resume_endpoint(
     resume_id: str,
-    payload: AnalyzeRequest | None = None
+    payload: AnalyzeRequest | None = None,
 ):
+    """
+    Analyzes a previously uploaded resume against a target job position.
+
+    Requires a valid resume_id from /api/resume/upload.
+    """
 
     stored = resume_store.get(resume_id)
 
     if not stored:
-
         raise HTTPException(
             status_code=404,
-            detail="Resume introuvable. Uploadez d'abord un CV via /api/resume/upload."
+            detail="Resume not found. Upload a CV first via /api/resume/upload.",
         )
 
     target_role = payload.target_role if payload else None
 
-    analysis = generate_resume_analysis(
-        stored["data"],
-        target_role=target_role,
-    )
+    try:
+        analysis = generate_resume_analysis(
+            stored["data"],
+            target_role=target_role,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"AI analysis failed: {str(e)}",
+        )
 
     return {
-
         "resume_id": resume_id,
-
         "analysis": analysis.model_dump(),
     }

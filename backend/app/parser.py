@@ -7,18 +7,18 @@ import re
 
 def clean_extracted_text(text: str) -> str:
     """
-    Nettoie le texte extrait d'un PDF.
+    Cleans text extracted from a PDF.
 
-    Corrige notamment :
-    - caractères séparés : A y y o u b -> Ayyoub
-    - espaces artificiels autour de @ et .
-    - numéros de téléphone séparés
-    - mots collés provenant du PDF
-    - espaces multiples
+    Fixes:
+    - Separated characters: A y y o u b -> Ayyoub
+    - Artificial spaces around @ and .
+    - Separated phone numbers
+    - Glued words from PDF extraction
+    - Multiple spaces
 
-    IMPORTANT :
-    On évite de supprimer globalement les espaces entre lettres,
-    car cela pourrait transformer des phrases normales.
+    IMPORTANT:
+    We avoid globally removing spaces between letters,
+    as this could break normal sentences.
     """
 
     if not text:
@@ -43,7 +43,7 @@ def clean_extracted_text(text: str) -> str:
             word = words[i]
 
             # =================================================
-            # Séquence de lettres isolées
+            # Isolated letter sequences
             # =================================================
 
             if len(word) == 1 and word.isalpha():
@@ -61,8 +61,7 @@ def clean_extracted_text(text: str) -> str:
                     else:
                         break
 
-                # Reconstruire seulement si la séquence
-                # contient au moins 2 caractères.
+                # Rebuild only if sequence has at least 2 characters
                 if len(sequence) >= 2:
 
                     cleaned_words.append(
@@ -73,7 +72,7 @@ def clean_extracted_text(text: str) -> str:
                     continue
 
             # =================================================
-            # Séquence de chiffres isolés
+            # Isolated digit sequences
             # =================================================
 
             if len(word) == 1 and word.isdigit():
@@ -107,7 +106,7 @@ def clean_extracted_text(text: str) -> str:
         line = " ".join(cleaned_words)
 
         # =====================================================
-        # PONCTUATION
+        # PUNCTUATION CLEANUP
         # =====================================================
 
         line = re.sub(
@@ -117,13 +116,13 @@ def clean_extracted_text(text: str) -> str:
         )
 
         line = re.sub(
-            r"([(\[])\s+",
+            r"([(\[{])\s+",
             r"\1",
             line
         )
 
         line = re.sub(
-            r"\s+([)\]])",
+            r"\s+([)\]}])",
             r"\1",
             line
         )
@@ -139,12 +138,10 @@ def clean_extracted_text(text: str) -> str:
     result = "\n".join(lines)
 
     # ============================================================
-    # EMAIL - NORMALISATION
+    # EMAIL NORMALIZATION
     # ============================================================
 
-    # ayyoub . ai20 @ gmail . com
-    # ->
-    # ayyoub.ai20@gmail.com
+    # ayyoub . ai20 @ gmail . com -> ayyoub.ai20@gmail.com
 
     result = re.sub(
         r"([A-Za-z0-9._%+\-]+)\s*@\s*",
@@ -166,12 +163,10 @@ def clean_extracted_text(text: str) -> str:
     )
 
     # ============================================================
-    # TELEPHONE
+    # PHONE NORMALIZATION
     # ============================================================
 
-    # + 2 1 2 6 5 3 6 0 8 3 7 2
-    # ->
-    # +212653608372
+    # + 2 1 2 6 5 3 6 0 8 3 7 2 -> +212653608372
 
     result = re.sub(
         r"\+\s*2\s*1\s*2"
@@ -185,152 +180,71 @@ def clean_extracted_text(text: str) -> str:
     )
 
     # ============================================================
-    # CORRECTIONS DE MOTS COLLÉS
+    # COMMON PDF GLUED WORD FIXES
     # ============================================================
+
+    # These are common patterns found in PDF extraction.
+    # Add more patterns as needed for your use case.
 
     replacements = {
 
-        # ======================================================
-        # IDENTITÉ
-        # ======================================================
+        # Identity
+        "AyyoubELMAHI": "Ayyoub ELMAHI",
 
-        "AyyoubELMAHI":
-            "Ayyoub ELMAHI",
+        # Profile
+        "\u00c9tudianting\u00e9nieuren": "\u00c9tudiant ing\u00e9nieur en",
+        "sp\u00e9cialis\u00e9eng\u00e9nieinformatique": "sp\u00e9cialis\u00e9 en g\u00e9nie informatique",
 
-        # ======================================================
-        # PROFIL
-        # ======================================================
+        # Sections
+        "Exp\u00e9riencesprofessionnelles": "Exp\u00e9riences professionnelles",
+        "Comp\u00e9tencestechniques": "Comp\u00e9tences techniques",
+        "Comp\u00e9tencescomportementales": "Comp\u00e9tences comportementales",
+        "Dipl\u00f4mesetFormations": "Dipl\u00f4mes et Formations",
+        "Exp\u00e9riencesacad\u00e9miques": "Exp\u00e9riences acad\u00e9miques",
 
-        "Étudiantingénieuren":
-            "Étudiant ingénieur en",
+        # Education
+        "Cycled'ing\u00e9nierie": "Cycle d'ing\u00e9nierie",
+        "Cycle d ' ing\u00e9nierie": "Cycle d'ing\u00e9nierie",
+        "Cycled ' ing\u00e9nierie": "Cycle d'ing\u00e9nierie",
+        "G\u00e9nieInformatique": "G\u00e9nie Informatique",
+        "\u00c9coledesHautes\u00c9tudes": "\u00c9cole des Hautes \u00c9tudes",
+        "DTSen": "DTS en",
+        "D\u00e9veloppementDigital": "D\u00e9veloppement Digital",
+        "OptionFullStack": "Option Full Stack",
 
-        "spécialiséengénieinformatique":
-            "spécialisé en génie informatique",
+        # Skills
+        "Gestiondebasesdedonn\u00e9es": "Gestion de bases de donn\u00e9es",
+        "OutilsDevops": "Outils DevOps",
+        "Outilsded\u00e9veloppement": "Outils de d\u00e9veloppement",
+        "Languages & Framworks": "Languages & Frameworks",
 
-        # ======================================================
-        # SECTIONS
-        # ======================================================
+        # Experiences
+        "Staged\u00e9veloppeurFullStack": "Stage d\u00e9veloppeur Full Stack",
+        "STEFASTBENCAR": "STE FASTBENCAR",
 
-        "Expériencesprofessionnelles":
-            "Expériences professionnelles",
+        # Projects
+        "ProjetdeSynth\u00e8sed\u00e9veloppeurFullStack": "Projet de Synth\u00e8se d\u00e9veloppeur Full Stack",
+        "Projetdefind'ann\u00e9e": "Projet de fin d'ann\u00e9e",
+        "Projetdefind ' ann\u00e9e": "Projet de fin d'ann\u00e9e",
+        "D\u00e9veloppementfull-stack": "D\u00e9veloppement full-stack",
+        "D\u00e9veloppementfull - stack": "D\u00e9veloppement full-stack",
 
-        "Compétencestechniques":
-            "Compétences techniques",
+        # Database
+        "Basededonn\u00e9es": "Base de donn\u00e9es",
+        "Basededonn\u00e9esMySQL": "Base de donn\u00e9es MySQL",
+        "Basededonn\u00e9esSqlServer": "Base de donn\u00e9es SQL Server",
+        "Basededonn\u00e9esSQLServer": "Base de donn\u00e9es SQL Server",
 
-        "Compétencescomportementales":
-            "Compétences comportementales",
-
-        "DiplômesetFormations":
-            "Diplômes et Formations",
-
-        "Expériencesacadémiques":
-            "Expériences académiques",
-
-        # ======================================================
-        # EDUCATION
-        # ======================================================
-
-        "Cycled'ingénierie":
-            "Cycle d'ingénierie",
-
-        "Cycle d ' ingénierie":
-            "Cycle d'ingénierie",
-
-        "Cycled ' ingénierie":
-            "Cycle d'ingénierie",
-
-        "GénieInformatique":
-            "Génie Informatique",
-
-        "ÉcoledesHautesÉtudes":
-            "École des Hautes Études",
-
-        "DTSen":
-            "DTS en",
-
-        "DéveloppementDigital":
-            "Développement Digital",
-
-        "OptionFullStack":
-            "Option Full Stack",
-
-        # ======================================================
-        # SKILLS
-        # ======================================================
-
-        "Gestiondebasesdedonnées":
-            "Gestion de bases de données",
-
-        "OutilsDevops":
-            "Outils DevOps",
-
-        "Outilsdedéveloppement":
-            "Outils de développement",
-
-        "Languages & Framworks":
-            "Languages & Frameworks",
-
-        # ======================================================
-        # EXPERIENCES
-        # ======================================================
-
-        "StagedéveloppeurFullStack":
-            "Stage développeur Full Stack",
-
-        "STEFASTBENCAR":
-            "STE FASTBENCAR",
-
-        # ======================================================
-        # PROJECTS
-        # ======================================================
-
-        "ProjetdeSynthèsedéveloppeurFullStack":
-            "Projet de Synthèse développeur Full Stack",
-
-        "Projetdefind'année":
-            "Projet de fin d'année",
-
-        "Projetdefind ' année":
-            "Projet de fin d'année",
-
-        "Développementfull-stack":
-            "Développement full-stack",
-
-        "Développementfull - stack":
-            "Développement full-stack",
-
-        # ======================================================
-        # DATABASE
-        # ======================================================
-
-        "Basededonnées":
-            "Base de données",
-
-        "BasededonnéesMySQL":
-            "Base de données MySQL",
-
-        "BasededonnéesSqlServer":
-            "Base de données SQL Server",
-
-        "BasededonnéesSQLServer":
-            "Base de données SQL Server",
-
-        # ======================================================
-        # USERS / AUTH
-        # ======================================================
-
-        "authentificationet":
-            "authentification et",
-
-        "Gestiondesutilisateurs":
-            "Gestion des utilisateurs",
+        # Users / Auth
+        "authentificationet": "authentification et",
+        "Gestiondesutilisateurs": "Gestion des utilisateurs",
     }
 
     for old, new in replacements.items():
         result = result.replace(old, new)
 
     # ============================================================
-    # NETTOYAGE FINAL
+    # FINAL CLEANUP
     # ============================================================
 
     result = re.sub(
@@ -343,29 +257,24 @@ def clean_extracted_text(text: str) -> str:
 
 
 # ============================================================
-# EMAIL
+# EMAIL EXTRACTION
 # ============================================================
 
-def extract_email(text: str):
+def extract_email(text: str) -> str | None:
     """
-    Extrait une adresse email.
+    Extracts an email address from the text.
 
-    Supporte notamment :
-
+    Supports:
         ayyoub.ai20@gmail.com
-
         ayyoub.ai20 @ gmail.com
-
         ayyoub.ai20 @ gmail . com
     """
 
     if not text:
         return None
 
-    # --------------------------------------------------------
-    # On travaille ligne par ligne afin d'éviter de créer
-    # accidentellement un email à partir de plusieurs lignes.
-    # --------------------------------------------------------
+    # Process line by line to avoid creating fake emails
+    # from unrelated text across multiple lines
 
     for line in text.splitlines():
 
@@ -374,21 +283,14 @@ def extract_email(text: str):
 
         candidate = line.strip()
 
-        # ----------------------------------------------------
-        # Supprimer les espaces autour de @
-        # ----------------------------------------------------
-
+        # Remove spaces around @
         candidate = re.sub(
             r"\s*@\s*",
             "@",
             candidate
         )
 
-        # ----------------------------------------------------
-        # Supprimer les espaces autour des points
-        # uniquement dans les zones ressemblant à un email.
-        # ----------------------------------------------------
-
+        # Remove spaces around dots only in email-like zones
         candidate = re.sub(
             r"([A-Za-z0-9._%+\-]+)"
             r"\s*\.\s*"
@@ -417,10 +319,7 @@ def extract_email(text: str):
 
             email = match.group(0).strip()
 
-            # ------------------------------------------------
-            # Validation simple
-            # ------------------------------------------------
-
+            # Simple validation
             if (
                 "@" in email
                 and "." in email.split("@")[-1]
@@ -432,29 +331,23 @@ def extract_email(text: str):
 
 
 # ============================================================
-# PHONE
+# PHONE EXTRACTION
 # ============================================================
 
-def extract_phone(text: str):
+def extract_phone(text: str) -> str | None:
     """
-    Extrait un numéro marocain.
+    Extracts a Moroccan phone number.
 
-    Supporte :
-
+    Supports:
         +212653608372
-
         +212 653 608 372
-
         + 2 1 2 6 5 3 6 0 8 3 7 2
     """
 
     if not text:
         return None
 
-    # ========================================================
-    # CAS 1 : +212 classique
-    # ========================================================
-
+    # Case 1: Standard +212 format
     match = re.search(
         r"\+212[\s.-]?"
         r"\d[\d\s.-]{7,12}\d",
@@ -475,10 +368,7 @@ def extract_phone(text: str):
         ):
             return "+" + digits
 
-    # ========================================================
-    # CAS 2 : chiffres séparés
-    # ========================================================
-
+    # Case 2: Spaced digits
     for line in text.splitlines():
 
         if "+" not in line:
@@ -500,14 +390,14 @@ def extract_phone(text: str):
 
 
 # ============================================================
-# NAME
+# NAME EXTRACTION
 # ============================================================
 
-def extract_name(text: str):
+def extract_name(text: str) -> str | None:
     """
-    Extrait le nom du candidat.
+    Extracts the candidate name.
 
-    Le nom est généralement situé dans les premières lignes.
+    The name is usually located in the first few lines.
     """
 
     if not text:
@@ -521,16 +411,28 @@ def extract_name(text: str):
 
     ignored = {
         "Langues",
-        "Expériences professionnelles",
-        "Compétences techniques",
-        "Compétences comportementales",
-        "Diplômes et Formations",
-        "Expériences académiques",
+        "Exp\u00e9riences professionnelles",
+        "Comp\u00e9tences techniques",
+        "Comp\u00e9tences comportementales",
+        "Dipl\u00f4mes et Formations",
+        "Exp\u00e9riences acad\u00e9miques",
         "Profil",
-        "Compétences",
+        "Comp\u00e9tences",
         "Formation",
-        "Expériences",
+        "Exp\u00e9riences",
         "Projets",
+        # English variants
+        "Languages",
+        "Professional Experiences",
+        "Technical Skills",
+        "Soft Skills",
+        "Education",
+        "Academic Experiences",
+        "Profile",
+        "Skills",
+        "Experience",
+        "Projects",
+        "Certifications",
     }
 
     for line in lines[:10]:
@@ -552,8 +454,7 @@ def extract_name(text: str):
         if not (1 <= len(words) <= 4):
             continue
 
-        # Une ligne de nom contient généralement
-        # au moins une lettre majuscule.
+        # A name line usually contains at least one uppercase letter
         if not any(
             char.isupper()
             for char in line
@@ -567,12 +468,12 @@ def extract_name(text: str):
 
 
 # ============================================================
-# LOCATION
+# LOCATION EXTRACTION
 # ============================================================
 
-def extract_location(text: str):
+def extract_location(text: str) -> str | None:
     """
-    Extrait une ville connue du CV.
+    Extracts a known city from the resume text.
     """
 
     if not text:
@@ -582,13 +483,13 @@ def extract_location(text: str):
         "Oujda",
         "Casablanca",
         "Rabat",
-        "Fès",
+        "F\u00e8s",
         "Fes",
         "Marrakech",
         "Tanger",
         "Tangier",
         "Agadir",
-        "Meknès",
+        "Mekn\u00e8s",
         "Meknes",
     ]
 
@@ -598,12 +499,12 @@ def extract_location(text: str):
 
         if location.lower() in text_lower:
 
-            # Uniformiser Fes -> Fès
+            # Normalize variants
             if location.lower() == "fes":
-                return "Fès"
+                return "F\u00e8s"
 
             if location.lower() == "meknes":
-                return "Meknès"
+                return "Mekn\u00e8s"
 
             if location.lower() == "tangier":
                 return "Tanger"

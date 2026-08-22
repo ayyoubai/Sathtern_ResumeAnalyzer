@@ -5,7 +5,6 @@ export interface SkillMatch {
 
 export interface ResumeAnalysis {
   target_role: string;
-  role_confidence: number;
   match_score: number;
   strengths: string[];
   missing_skills: string[];

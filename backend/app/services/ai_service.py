@@ -27,8 +27,8 @@ api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
     raise RuntimeError(
-        f"GROQ_API_KEY introuvable. "
-        f"Vérifie le fichier : {ENV_FILE}"
+        f"GROQ_API_KEY not found. "
+        f"Please check the file: {ENV_FILE}"
     )
 
 client = Groq(api_key=api_key)
@@ -43,8 +43,8 @@ MODEL = os.getenv(
 # LIMITS
 # ============================================================
 
-# On évite de couper trop tôt les CV.
-# 12000 caractères reste raisonnable pour l'analyse.
+# Avoid cutting CVs too short.
+# 12000 characters remains reasonable for analysis.
 MAX_INPUT_CHARS = 12000
 
 MAX_SKILLS = 30
@@ -175,7 +175,6 @@ REFERENCE_SKILLS = [
     "PyTorch",
     "Statistics",
     "Statistical Analysis",
-    "Statistiques",
     "Data Visualization",
     "Big Data",
     "Spark",
@@ -380,14 +379,15 @@ ROLE_SKILLS = {
 # SKILL ALIASES
 # ============================================================
 
-# Permet d'éviter les faux "missing".
+# Prevents false "missing" skills by normalizing variants.
 #
-# Exemple :
-# SpringBoot dans le CV
-# Spring Boot dans ROLE_SKILLS
+# Example:
+#   SpringBoot in the CV
+#   Spring Boot in ROLE_SKILLS
 #
-# => même compétence.
+# => same skill.
 #
+
 SKILL_ALIASES = {
 
     "springboot": "spring boot",
@@ -465,12 +465,12 @@ SKILL_ALIASES = {
 
 def extract_json_object(content: str) -> str:
     """
-    Extrait un objet JSON depuis une réponse du modèle.
+    Extracts a JSON object from a model response.
 
-    Supporte :
-    - JSON pur
+    Supports:
+    - Pure JSON
     - ```json ... ```
-    - texte avant/après le JSON
+    - Text before/after the JSON
     """
 
     if not content:
@@ -512,7 +512,7 @@ def extract_json_object(content: str) -> str:
 
 def normalize_list(value: Any) -> list:
     """
-    Retourne une liste propre.
+    Returns a clean list.
     """
 
     if isinstance(value, list):
@@ -527,7 +527,7 @@ def normalize_list(value: Any) -> list:
 
 def clean_string(value: Any) -> str | None:
     """
-    Nettoie une valeur et retourne une string ou None.
+    Cleans a value and returns a string or None.
     """
 
     if value is None:
@@ -550,10 +550,10 @@ def clean_string(value: Any) -> str | None:
 
 def clean_string_list(values: Any) -> list[str]:
     """
-    Nettoie une liste de strings :
-    - supprime les valeurs invalides
-    - supprime les espaces inutiles
-    - supprime les doublons
+    Cleans a list of strings:
+    - removes invalid values
+    - removes unnecessary spaces
+    - removes duplicates
     """
 
     if not isinstance(values, list):
@@ -583,7 +583,7 @@ def clean_string_list(values: Any) -> list[str]:
 
 def clean_description(value: Any) -> str | None:
     """
-    Limite les descriptions à 30 mots.
+    Limits descriptions to 30 words.
     """
 
     value = clean_string(value)
@@ -605,9 +605,9 @@ def clean_description(value: Any) -> str | None:
 
 def normalize_skill(skill: str) -> str:
     """
-    Normalise une compétence.
+    Normalizes a skill name.
 
-    Exemple :
+    Example:
 
     SpringBoot
     Spring Boot
@@ -623,7 +623,7 @@ def normalize_skill(skill: str) -> str:
     skill = skill.replace("-", " ")
     skill = skill.replace("_", " ")
 
-    # Retirer espaces autour des caractères importants
+    # Remove spaces around important characters
     skill = skill.replace(" . ", ".")
     skill = skill.replace(" / ", "/")
 
@@ -633,7 +633,7 @@ def normalize_skill(skill: str) -> str:
         skill,
     )
 
-    # Appliquer les aliases
+    # Apply aliases
     if skill in SKILL_ALIASES:
         skill = SKILL_ALIASES[skill]
 
@@ -646,7 +646,7 @@ def normalize_skill(skill: str) -> str:
 
 def canonical_skill(skill: str) -> str:
     """
-    Retourne la forme canonique d'une compétence.
+    Returns the canonical form of a skill.
     """
 
     normalized = normalize_skill(skill)
@@ -666,14 +666,13 @@ def skill_is_present(
     text: str,
 ) -> bool:
     """
-    Vérifie si une compétence est réellement présente
-    dans le texte du CV.
+    Checks if a skill is actually present in the resume text.
 
-    Évite notamment :
+    Prevents false matches such as:
 
     Java -> JavaScript
 
-    et gère les technologies spéciales :
+    And handles special technologies:
     .NET
     C#
     C++
@@ -691,7 +690,7 @@ def skill_is_present(
         return False
 
     # --------------------------------------------------------
-    # ALIASES / VARIANTES
+    # Aliases / Variants
     # --------------------------------------------------------
 
     variants = {
@@ -704,7 +703,7 @@ def skill_is_present(
             variants.add(alias)
 
     # --------------------------------------------------------
-    # Recherche
+    # Search
     # --------------------------------------------------------
 
     for variant in variants:
@@ -716,7 +715,7 @@ def skill_is_present(
         if not variant:
             continue
 
-        # Technologies contenant des caractères spéciaux
+        # Technologies containing special characters
         if any(
             char in variant
             for char in [".", "+", "#", "/"]
@@ -726,7 +725,7 @@ def skill_is_present(
 
             continue
 
-        # Recherche par mots complets
+        # Whole word search
         pattern = rf"\b{re.escape(variant)}\b"
 
         if re.search(
@@ -747,16 +746,15 @@ def build_resume_search_text(
     resume_data: ResumeData,
 ) -> str:
     """
-    Construit un texte global du CV à partir de toutes
-    les informations disponibles.
+    Builds a global resume text from all available information.
 
-    Utilisé uniquement pour la détection des compétences.
+    Used only for skill detection.
     """
 
     text_parts = []
 
     # --------------------------------------------------------
-    # PERSONAL INFO
+    # Personal Info
     # --------------------------------------------------------
 
     if resume_data.personal_info:
@@ -778,7 +776,7 @@ def build_resume_search_text(
                     text_parts.append(value)
 
     # --------------------------------------------------------
-    # SKILLS
+    # Skills
     # --------------------------------------------------------
 
     for skill in resume_data.skills:
@@ -787,7 +785,7 @@ def build_resume_search_text(
             text_parts.append(skill)
 
     # --------------------------------------------------------
-    # EXPERIENCES
+    # Experiences
     # --------------------------------------------------------
 
     for experience in resume_data.experiences:
@@ -809,7 +807,7 @@ def build_resume_search_text(
                     text_parts.append(value)
 
     # --------------------------------------------------------
-    # PROJECTS
+    # Projects
     # --------------------------------------------------------
 
     for project in resume_data.projects:
@@ -831,7 +829,7 @@ def build_resume_search_text(
                     text_parts.append(value)
 
     # --------------------------------------------------------
-    # EDUCATION
+    # Education
     # --------------------------------------------------------
 
     for education in resume_data.education:
@@ -853,7 +851,7 @@ def build_resume_search_text(
                     text_parts.append(value)
 
     # --------------------------------------------------------
-    # CERTIFICATES
+    # Certificates
     # --------------------------------------------------------
 
     for certificate in resume_data.certificates:
@@ -872,8 +870,7 @@ def collect_resume_skills(
     resume_data: ResumeData,
 ) -> set[str]:
     """
-    Détecte uniquement les compétences connues
-    présentes réellement dans le CV.
+    Detects only known skills actually present in the resume.
     """
 
     full_text = build_resume_search_text(
@@ -904,7 +901,7 @@ def get_role_skills(
     target_role: str,
 ) -> list[str]:
     """
-    Retourne les compétences pertinentes pour un poste.
+    Returns relevant skills for a job position.
     """
 
     if not target_role:
@@ -912,11 +909,11 @@ def get_role_skills(
 
     target_role = target_role.strip()
 
-    # Match exact
+    # Exact match
     if target_role in ROLE_SKILLS:
         return ROLE_SKILLS[target_role]
 
-    # Match insensible à la casse
+    # Case-insensitive match
     for role, skills in ROLE_SKILLS.items():
 
         if role.lower() == target_role.lower():
@@ -934,14 +931,13 @@ def calculate_match_score(
     detected_resume_skills: set[str],
 ) -> int:
     """
-    Calcule le score de compatibilité de manière
-    totalement déterministe.
+    Calculates the compatibility score in a fully deterministic way.
 
-    Score = nombre de compétences du poste présentes
-            / nombre total de compétences du poste
+    Score = number of role skills present in resume
+            / total number of role skills
             × 100
 
-    L'IA ne peut donc pas inventer le score.
+    The AI cannot invent this score.
     """
 
     role_skills = get_role_skills(
@@ -990,14 +986,14 @@ def build_skills_match(
     detected_resume_skills: set[str],
 ) -> list[dict]:
     """
-    Construit skills_match côté Python.
+    Builds skills_match on the Python side.
 
-    strong  = présent dans le CV
-    missing = absent du CV
+    strong  = present in the resume
+    missing = absent from the resume
 
-    Cela empêche le modèle de retourner :
+    This prevents the model from returning:
     Python = missing
-    alors que Python est présent.
+    when Python is actually present.
     """
 
     role_skills = get_role_skills(
@@ -1047,7 +1043,7 @@ def build_missing_skills(
     detected_resume_skills: set[str],
 ) -> list[str]:
     """
-    Construit missing_skills de manière déterministe.
+    Builds missing_skills in a deterministic way.
     """
 
     role_skills = get_role_skills(
@@ -1087,45 +1083,45 @@ def build_prompt(
 ) -> str:
 
     return f"""
-Tu es un expert en extraction automatique de CV.
+You are an expert in automatic resume extraction.
 
-Ta mission est d'extraire uniquement les informations présentes
-dans le CV fourni.
+Your mission is to extract only the information present
+in the provided resume.
 
 ============================================================
-RÈGLES CRITIQUES
+CRITICAL RULES
 ============================================================
 
-- Utilise uniquement les informations présentes dans le CV.
-- N'invente aucune information.
-- Ne déduis pas une information absente.
-- Si une information est absente, retourne null.
-- Si une liste est absente, retourne [].
-- Respecte exactement le format JSON demandé.
+- Use only information present in the resume.
+- Do not invent any information.
+- Do not infer missing information.
+- If information is absent, return null.
+- If a list is absent, return [].
+- Respect exactly the requested JSON format.
 
-Catégorisation :
+Categorization:
 
-- stages et emplois → experiences
-- projets académiques et personnels → projects
-- diplômes et formations → education
-- technologies et outils → skills
-- certifications → certificates
+- internships and jobs -> experiences
+- academic and personal projects -> projects
+- degrees and training -> education
+- technologies and tools -> skills
+- certifications -> certificates
 
-Les descriptions doivent être courtes et factuelles.
+Descriptions must be short and factual.
 
-Limites :
+Limits:
 
 - Maximum 30 skills.
-- Maximum 10 expériences.
-- Maximum 10 formations.
-- Maximum 10 projets.
+- Maximum 10 experiences.
+- Maximum 10 education entries.
+- Maximum 10 projects.
 - Maximum 10 certifications.
 
 ============================================================
-INFORMATIONS EXTRAITES DIRECTEMENT DU CV
+DIRECTLY EXTRACTED INFORMATION FROM THE RESUME
 ============================================================
 
-Ces informations sont prioritaires :
+These information are prioritized:
 
 name:
 {json.dumps(name, ensure_ascii=False)}
@@ -1140,14 +1136,14 @@ location:
 {json.dumps(location, ensure_ascii=False)}
 
 ============================================================
-FORMAT OBLIGATOIRE
+MANDATORY FORMAT
 ============================================================
 
-Retourne UNIQUEMENT un objet JSON valide.
+Return ONLY a valid JSON object.
 
-Aucun markdown.
-Aucune explication.
-Aucun texte avant ou après le JSON.
+No markdown.
+No explanation.
+No text before or after the JSON.
 
 {{
   "personal_info": {{
@@ -1196,7 +1192,7 @@ Aucun texte avant ou après le JSON.
 }}
 
 ============================================================
-CV
+RESUME
 ============================================================
 
 {text}
@@ -1210,17 +1206,17 @@ CV
 def call_groq(prompt: str):
 
     """
-    Appelle Groq avec compatibilité pour les versions
-    supportant ou non reasoning_effort.
+    Calls Groq with compatibility for versions
+    supporting or not supporting reasoning_effort.
     """
 
     messages = [
         {
             "role": "system",
             "content": (
-                "Tu es un expert en analyse de CV. "
-                "Tu suis strictement les instructions. "
-                "Tu retournes uniquement du JSON valide."
+                "You are an expert resume analysis assistant. "
+                "You follow instructions strictly. "
+                "You return only valid JSON."
             ),
         },
         {
@@ -1257,7 +1253,7 @@ def parse_json_response(
     content: str,
 ) -> dict:
     """
-    Parse et valide la réponse JSON du modèle.
+    Parses and validates the model's JSON response.
     """
 
     json_text = extract_json_object(
@@ -1267,7 +1263,7 @@ def parse_json_response(
     if not json_text:
 
         raise RuntimeError(
-            "Impossible de trouver un objet JSON dans la réponse IA."
+            "Unable to find a JSON object in the AI response."
         )
 
     try:
@@ -1288,7 +1284,7 @@ def parse_json_response(
         print()
 
         raise RuntimeError(
-            "Le modèle IA a retourné un JSON invalide."
+            "The AI model returned an invalid JSON response."
         )
 
     if not isinstance(
@@ -1297,7 +1293,7 @@ def parse_json_response(
     ):
 
         raise RuntimeError(
-            "La réponse IA n'est pas un objet JSON."
+            "The AI response is not a JSON object."
         )
 
     return result
@@ -1315,15 +1311,15 @@ def analyze_resume(
     location: str | None = None,
 ) -> ResumeData:
     """
-    Première étape :
+    First step:
 
-    CV texte
+    Resume text
         ↓
     Groq
         ↓
     JSON
         ↓
-    nettoyage
+    cleaning
         ↓
     ResumeData
     """
@@ -1369,13 +1365,13 @@ def analyze_resume(
         print()
 
         raise RuntimeError(
-            f"Erreur lors de l'analyse Groq : {str(e)}"
+            f"Error during Groq analysis: {str(e)}"
         )
 
     if not response.choices:
 
         raise RuntimeError(
-            "Groq n'a retourné aucun choix."
+            "Groq returned no choices."
         )
 
     choice = response.choices[0]
@@ -1403,7 +1399,7 @@ def analyze_resume(
     if not content:
 
         raise RuntimeError(
-            "Le modèle IA a retourné une réponse vide. "
+            "The AI model returned an empty response. "
             f"finish_reason={finish_reason}"
         )
 
@@ -1418,14 +1414,14 @@ def analyze_resume(
         if finish_reason == "length":
 
             raise RuntimeError(
-                "La réponse IA a été coupée avant la fin du JSON. "
-                "Réduis le contenu du CV ou augmente max_tokens."
+                "The AI response was truncated before the JSON ended. "
+                "Reduce the resume content or increase max_tokens."
             )
 
         raise e
 
     # ========================================================
-    # PERSONAL INFO
+    # Personal Info
     # ========================================================
 
     personal_info = result.get(
@@ -1453,7 +1449,7 @@ def analyze_resume(
         personal_info["location"] = location
 
     # ========================================================
-    # SKILLS
+    # Skills
     # ========================================================
 
     skills = clean_string_list(
@@ -1468,7 +1464,7 @@ def analyze_resume(
     ]
 
     # ========================================================
-    # EXPERIENCES
+    # Experiences
     # ========================================================
 
     experiences = normalize_list(
@@ -1533,7 +1529,7 @@ def analyze_resume(
     ]
 
     # ========================================================
-    # EDUCATION
+    # Education
     # ========================================================
 
     education = normalize_list(
@@ -1598,7 +1594,7 @@ def analyze_resume(
     ]
 
     # ========================================================
-    # PROJECTS
+    # Projects
     # ========================================================
 
     projects = normalize_list(
@@ -1663,7 +1659,7 @@ def analyze_resume(
     ]
 
     # ========================================================
-    # CERTIFICATES
+    # Certificates
     # ========================================================
 
     certificates = clean_string_list(
@@ -1678,7 +1674,7 @@ def analyze_resume(
     ]
 
     # ========================================================
-    # PYDANTIC
+    # Pydantic Validation
     # ========================================================
 
     try:
@@ -1732,7 +1728,7 @@ def analyze_resume(
         print()
 
         raise RuntimeError(
-            f"Erreur lors de la validation des données CV : {str(e)}"
+            f"Error during resume data validation: {str(e)}"
         )
 
     print()
@@ -1757,33 +1753,33 @@ def generate_resume_analysis(
     target_role: str | None = None,
 ) -> ResumeAnalysis:
     """
-    Deuxième étape :
+    Second step:
 
     ResumeData
         ↓
-    détection déterministe des compétences
+    deterministic skill detection
         ↓
-    calcul déterministe du score
+    deterministic score calculation
         ↓
-    Groq pour les recommandations qualitatives
+    Groq for qualitative recommendations
         ↓
     ResumeAnalysis
     """
 
     # ========================================================
-    # TARGET ROLE
+    # Target Role
     # ========================================================
 
     if not target_role or not target_role.strip():
 
         raise ValueError(
-            "Le domaine/poste ciblé est obligatoire."
+            "The target job position is required."
         )
 
     target_role = target_role.strip()
 
     # ========================================================
-    # CHECK ROLE
+    # Check Role
     # ========================================================
 
     role_skills = get_role_skills(
@@ -1793,13 +1789,13 @@ def generate_resume_analysis(
     if not role_skills:
 
         raise ValueError(
-            f"Poste non supporté : '{target_role}'. "
-            f"Postes disponibles : "
+            f"Unsupported position: '{target_role}'. "
+            f"Available positions: "
             f"{', '.join(ROLE_SKILLS.keys())}"
         )
 
     # ========================================================
-    # RESUME JSON
+    # Resume JSON
     # ========================================================
 
     resume_json = json.dumps(
@@ -1809,7 +1805,7 @@ def generate_resume_analysis(
     )
 
     # ========================================================
-    # DETECT RESUME SKILLS
+    # Detect Resume Skills
     # ========================================================
 
     detected_resume_skills = collect_resume_skills(
@@ -1826,13 +1822,13 @@ def generate_resume_analysis(
     print("========== DETECTED RESUME SKILLS ==========")
     print(
         detected_resume_skills_text
-        or "Aucune compétence de référence détectée."
+        or "No reference skills detected."
     )
     print("=============================================")
     print()
 
     # ========================================================
-    # DETERMINISTIC SCORE
+    # Deterministic Score
     # ========================================================
 
     match_score = calculate_match_score(
@@ -1841,7 +1837,7 @@ def generate_resume_analysis(
     )
 
     # ========================================================
-    # DETERMINISTIC SKILLS MATCH
+    # Deterministic Skills Match
     # ========================================================
 
     skills_match = build_skills_match(
@@ -1850,7 +1846,7 @@ def generate_resume_analysis(
     )
 
     # ========================================================
-    # DETERMINISTIC MISSING SKILLS
+    # Deterministic Missing Skills
     # ========================================================
 
     missing_skills = build_missing_skills(
@@ -1882,73 +1878,73 @@ def generate_resume_analysis(
     print()
 
     # ========================================================
-    # ANALYSIS PROMPT
+    # Analysis Prompt
     # ========================================================
 
     prompt = f"""
-Tu es un expert en recrutement technique et en analyse de CV.
+You are an expert technical recruiter and resume analyst.
 
-Analyse le CV suivant par rapport au poste :
+Analyze the following resume against the position:
 
 ============================================================
-POSTE CIBLÉ
+TARGET POSITION
 ============================================================
 
 {target_role}
 
 ============================================================
-COMPÉTENCES ATTENDUES POUR CE POSTE
+EXPECTED SKILLS FOR THIS POSITION
 ============================================================
 
 {json.dumps(role_skills, ensure_ascii=False)}
 
 ============================================================
-COMPÉTENCES DÉTECTÉES AUTOMATIQUEMENT DANS LE CV
+SKILLS AUTOMATICALLY DETECTED IN THE RESUME
 ============================================================
 
 {detected_resume_skills_text}
 
-IMPORTANT :
+IMPORTANT:
 
-Ces compétences ont été détectées directement dans le CV.
+These skills were detected directly from the resume.
 
-Elles sont considérées comme présentes.
+They are considered present.
 
-Elles ne doivent JAMAIS être présentées comme absentes.
+They must NEVER be presented as missing.
 
 ============================================================
-DONNÉES DU CV
+RESUME DATA
 ============================================================
 
 {resume_json}
 
 ============================================================
-OBJECTIF
+OBJECTIVE
 ============================================================
 
-Produis uniquement les éléments qualitatifs suivants :
+Produce only the following qualitative elements:
 
 1. strengths
 2. recommendations
 3. cv_improvements
 
-Le score, les missing_skills et skills_match sont calculés
-par le système et NE DOIVENT PAS être recalculés par toi.
+The score, missing_skills, and skills_match are calculated
+by the system and MUST NOT be recalculated by you.
 
 ============================================================
-RÈGLES
+RULES
 ============================================================
 
-1. UTILISER UNIQUEMENT LE CV
+1. USE ONLY THE RESUME
 
-N'invente jamais :
+Never invent:
 
-- une compétence
-- une expérience
-- un projet
-- une formation
-- une certification
-- une technologie
+- a skill
+- an experience
+- a project
+- an education entry
+- a certification
+- a technology
 
 ============================================================
 2. STRENGTHS
@@ -1956,14 +1952,13 @@ N'invente jamais :
 
 Maximum 6.
 
-Liste uniquement les points forts réellement démontrés
-dans le CV.
+List only strengths actually demonstrated in the resume.
 
-Sois précis.
+Be specific.
 
-Exemple :
+Example:
 
-"Expérience full stack avec Angular, Spring Boot et .NET"
+"Full stack experience with Angular, Spring Boot and .NET"
 
 ============================================================
 3. RECOMMENDATIONS
@@ -1971,11 +1966,10 @@ Exemple :
 
 Maximum 6.
 
-Donne des actions concrètes pour améliorer le profil
-par rapport au poste.
+Give concrete actions to improve the profile
+for the target position.
 
-Ne recommande pas comme "à apprendre" une compétence
-déjà présente dans le CV.
+Do not recommend learning a skill already present in the resume.
 
 ============================================================
 4. CV IMPROVEMENTS
@@ -1983,24 +1977,24 @@ déjà présente dans le CV.
 
 Maximum 6.
 
-Concerne uniquement l'amélioration du CV :
+Focus only on resume improvements:
 
 - dates
 - descriptions
 - technologies
-- résultats
-- projets
+- results
+- projects
 - certifications
-- présentation
+- presentation
 
 ============================================================
-FORMAT OBLIGATOIRE
+MANDATORY FORMAT
 ============================================================
 
-Retourne UNIQUEMENT un objet JSON valide.
+Return ONLY a valid JSON object.
 
-Aucun markdown.
-Aucune explication.
+No markdown.
+No explanation.
 
 {{
   "strengths": [],
@@ -2028,17 +2022,17 @@ Aucune explication.
         print()
 
         raise RuntimeError(
-            f"Erreur lors de l'analyse du CV : {str(e)}"
+            f"Error during resume analysis: {str(e)}"
         )
 
     # ========================================================
-    # RESPONSE
+    # Response
     # ========================================================
 
     if not response.choices:
 
         raise RuntimeError(
-            "Groq n'a retourné aucun résultat pour l'analyse."
+            "Groq returned no result for the analysis."
         )
 
     choice = response.choices[0]
@@ -2067,11 +2061,11 @@ Aucune explication.
     if not content:
 
         raise RuntimeError(
-            "Le modèle IA a retourné une réponse vide."
+            "The AI model returned an empty response."
         )
 
     # ========================================================
-    # PARSE
+    # Parse
     # ========================================================
 
     try:
@@ -2085,16 +2079,16 @@ Aucune explication.
         if finish_reason == "length":
 
             raise RuntimeError(
-                "La réponse de l'analyse IA a été coupée. "
-                "Réduis le contenu envoyé ou augmente max_tokens."
+                "The AI analysis response was truncated. "
+                "Reduce the content sent or increase max_tokens."
             )
 
         raise RuntimeError(
-            f"Impossible de parser l'analyse IA : {str(e)}"
+            f"Unable to parse AI analysis: {str(e)}"
         )
 
     # ========================================================
-    # STRENGTHS
+    # Strengths
     # ========================================================
 
     strengths = clean_string_list(
@@ -2109,7 +2103,7 @@ Aucune explication.
     ]
 
     # ========================================================
-    # RECOMMENDATIONS
+    # Recommendations
     # ========================================================
 
     recommendations = clean_string_list(
@@ -2124,7 +2118,7 @@ Aucune explication.
     ]
 
     # ========================================================
-    # CV IMPROVEMENTS
+    # CV Improvements
     # ========================================================
 
     cv_improvements = clean_string_list(
@@ -2139,7 +2133,7 @@ Aucune explication.
     ]
 
     # ========================================================
-    # BUILD RESULT
+    # Build Result
     # ========================================================
 
     try:
@@ -2170,11 +2164,11 @@ Aucune explication.
         print()
 
         raise RuntimeError(
-            f"Erreur lors de la validation de l'analyse : {str(e)}"
+            f"Error during analysis validation: {str(e)}"
         )
 
     # ========================================================
-    # SUCCESS
+    # Success
     # ========================================================
 
     print()

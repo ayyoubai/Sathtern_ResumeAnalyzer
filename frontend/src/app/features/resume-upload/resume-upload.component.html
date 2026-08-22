@@ -1,92 +1,87 @@
 <div class="page">
 
-  <!-- =====================================================
+  <!-- ============================================================
        HEADER
-  ====================================================== -->
+  ============================================================ -->
 
   <header class="header">
 
     <div class="brand">
 
       <div class="brand-mark">
-        S
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
       </div>
 
       <div>
-        <div class="brand-name">
-          Sathtern
-        </div>
-
-        <div class="brand-product">
-          Resume Analyzer
-        </div>
+        <div class="brand-name">Sathtern</div>
+        <div class="brand-product">Resume Analyzer</div>
       </div>
 
-    </div>
-
-    <div class="header-badge">
-      AI Powered
     </div>
 
   </header>
 
 
-  <!-- =====================================================
-       HERO
-  ====================================================== -->
+  <!-- ============================================================
+       HERO (Upload Form)
+  ============================================================ -->
 
-  @if (!analysis) {
+  @if (!uploading && !analyzing) {
 
     <main class="hero">
+
+      <div class="hero-glow"></div>
+      <div class="hero-grid"></div>
 
       <div class="hero-content">
 
         <div class="eyebrow">
+          <span class="eyebrow-dot"></span>
           AI-POWERED RESUME ANALYSIS
         </div>
 
         <h1>
           Make your resume
-          <span>job-ready.</span>
+          <span class="gradient-text">job-ready.</span>
         </h1>
 
         <p class="hero-description">
           Upload your CV and discover how well it matches
           your target position. Get actionable insights,
-          missing skills and recommendations in seconds.
+          missing skills, and personalized recommendations in seconds.
         </p>
 
 
-        <!-- =================================================
+        <!-- =========================================================
              UPLOAD CARD
-        ================================================== -->
+        ========================================================= -->
 
         <section class="analyzer-card">
 
           <div class="card-header">
-
             <div>
-
-              <h2>
-                Analyze your resume
-              </h2>
-
-              <p>
-                Upload a PDF version of your CV.
-              </p>
-
+              <h2>Analyze your resume</h2>
+              <p>Upload a PDF version of your CV</p>
             </div>
-
             <div class="secure-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
               PDF
             </div>
-
           </div>
 
 
-          <!-- =================================================
+          <!-- =========================================================
                DROP ZONE
-          ================================================== -->
+          ========================================================= -->
 
           @if (!selectedFile) {
 
@@ -100,23 +95,16 @@
             >
 
               <div class="upload-icon">
-                ↑
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
               </div>
 
-              <h3>
-                Drop your resume here
-              </h3>
-
-              <p>
-                or
-                <span>
-                  browse files
-                </span>
-              </p>
-
-              <small>
-                PDF files only
-              </small>
+              <h3>Drop your resume here</h3>
+              <p>or <span class="browse-link">browse files</span></p>
+              <small>PDF files only, max 10MB</small>
 
             </label>
 
@@ -131,37 +119,39 @@
           }
 
 
-          <!-- =================================================
+          <!-- =========================================================
                SELECTED FILE
-          ================================================== -->
+          ========================================================= -->
 
           @if (selectedFile) {
 
             <div class="selected-file">
 
               <div class="file-icon">
-                PDF
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
               </div>
 
               <div class="file-info">
-
-                <strong>
-                  {{ selectedFile.name }}
-                </strong>
-
-                <span>
-                  {{ (selectedFile.size / 1024 / 1024).toFixed(2) }}
-                  MB
-                </span>
-
+                <strong>{{ selectedFile.name }}</strong>
+                <span>{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</span>
               </div>
 
               <button
                 type="button"
                 class="remove-button"
                 (click)="removeFile()"
+                title="Remove file"
               >
-                ×
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
               </button>
 
             </div>
@@ -169,102 +159,80 @@
           }
 
 
-          <!-- =================================================
+          <!-- =========================================================
                TARGET ROLE
-          ================================================== -->
+          ========================================================= -->
 
           <div class="form-group">
-
-            <label for="targetRole">
-              Target position
-            </label>
-
+            <label for="targetRole">Target position</label>
             <div class="select-wrapper">
-
-              <select
-                id="targetRole"
-                [(ngModel)]="targetRole"
-              >
-
+              <select id="targetRole" [(ngModel)]="targetRole">
                 @for (role of roles; track role) {
-
-                  <option [value]="role">
-                    {{ role }}
-                  </option>
-
+                  <option [value]="role">{{ role }}</option>
                 }
-
               </select>
-
+              <div class="select-arrow">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
             </div>
-
           </div>
 
 
-          <!-- =================================================
+          <!-- =========================================================
                ERROR
-          ================================================== -->
+          ========================================================= -->
 
           @if (error) {
-
             <div class="error-message">
-
-              <span>!</span>
-
+              <div class="error-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
               {{ error }}
-
             </div>
-
           }
 
 
-          <!-- =================================================
+          <!-- =========================================================
                BUTTON
-          ================================================== -->
+          ========================================================= -->
 
           <button
             type="button"
             class="analyze-button"
-            [disabled]="
-              !selectedFile ||
-              uploading ||
-              analyzing
-            "
+            [disabled]="!selectedFile || uploading || analyzing"
             (click)="uploadAndAnalyze()"
           >
 
             @if (uploading) {
-
               <span class="spinner"></span>
-
               Uploading resume...
-
             } @else if (analyzing) {
-
               <span class="spinner"></span>
-
               Analyzing with AI...
-
             } @else {
-
               Analyze Resume
-
-              <span>
-                →
+              <span class="btn-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
               </span>
-
             }
 
           </button>
 
 
           <div class="privacy-note">
-
-            <span>●</span>
-
-            Your resume is processed securely
-            for this analysis.
-
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Your resume is processed securely for this analysis only
           </div>
 
         </section>
@@ -276,509 +244,45 @@
   }
 
 
-  <!-- =====================================================
-       ANALYSIS RESULT
-  ====================================================== -->
+  <!-- ============================================================
+       SKELETON LOADING (upload en cours ou analyse en cours)
+  ============================================================ -->
 
-  @if (analysis) {
+  @if (uploading || analyzing) {
 
-    <main
-      id="analysis-result"
-      class="results-page"
-    >
+    <main class="results-page skeleton-page">
 
-      <!-- =================================================
-           RESULT HEADER
-      ================================================== -->
-
-      <div class="results-top">
-
-        <div>
-
-          <div class="eyebrow">
-            RESUME ANALYSIS
-          </div>
-
-          <h1>
-            Your resume results
-          </h1>
-
-          <p>
-            AI-powered compatibility analysis for
-            <strong>
-              {{ analysis.analysis.target_role }}
-            </strong>
-          </p>
-
-        </div>
-
-        <button
-          type="button"
-          class="new-analysis-button"
-          (click)="newAnalysis()"
-        >
-          ← New analysis
-        </button>
-
+      <div class="skeleton-header">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-subtitle"></div>
       </div>
 
+      <div class="skeleton skeleton-meta"></div>
 
-      <!-- =================================================
-           RESUME META
-      ================================================== -->
-
-      <div class="resume-meta">
-
-        <div class="resume-file-icon">
-          PDF
-        </div>
-
-        <div>
-
-          <strong>
-            {{ selectedFile?.name }}
-          </strong>
-
-          <span>
-            Target position:
-            {{ analysis.analysis.target_role }}
-          </span>
-
-        </div>
-
+      <div class="skeleton-score-card">
+        <div class="skeleton skeleton-circle"></div>
+        <div class="skeleton skeleton-text-lg"></div>
+        <div class="skeleton skeleton-text-md"></div>
       </div>
-
-
-      <!-- =================================================
-           SCORE CARD
-      ================================================== -->
-
-      <section class="score-card">
-
-        <div class="score-info">
-
-          <div class="section-label">
-            OVERALL MATCH
-          </div>
-
-          <h2>
-            {{ scoreLabel }}
-          </h2>
-
-          <p>
-            Your resume matches
-            <strong>
-              {{ analysis.analysis.match_score }}%
-            </strong>
-            of the skills expected for this position.
-          </p>
-
-        </div>
-
-
-        <div
-          class="score-circle"
-          [class]="scoreClass"
-          [style.--score]="analysis.analysis.match_score"
-        >
-
-          <div class="score-circle-inner">
-
-            <strong>
-              {{ analysis.analysis.match_score }}
-            </strong>
-
-            <span>
-              / 100
-            </span>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =================================================
-           TWO COLUMNS
-      ================================================== -->
 
       <div class="results-grid">
-
-        <!-- =================================================
-             STRENGTHS
-        ================================================== -->
-
-        <section class="result-card">
-
-          <div class="result-card-title">
-
-            <div class="title-icon success">
-              ✓
-            </div>
-
-            <div>
-
-              <h2>
-                Strengths
-              </h2>
-
-              <p>
-                What makes your profile relevant
-              </p>
-
-            </div>
-
-          </div>
-
-          @if (
-            analysis.analysis.strengths.length > 0
-          ) {
-
-            <ul class="result-list">
-
-              @for (
-                strength of analysis.analysis.strengths;
-                track strength
-              ) {
-
-                <li>
-                  <span class="list-check">
-                    ✓
-                  </span>
-
-                  {{ strength }}
-                </li>
-
-              }
-
-            </ul>
-
-          } @else {
-
-            <div class="empty-state">
-              No strengths identified.
-            </div>
-
-          }
-
-        </section>
-
-
-        <!-- =================================================
-             MISSING SKILLS
-        ================================================== -->
-
-        <section class="result-card">
-
-          <div class="result-card-title">
-
-            <div class="title-icon warning">
-              !
-            </div>
-
-            <div>
-
-              <h2>
-                Missing skills
-              </h2>
-
-              <p>
-                Skills worth developing
-              </p>
-
-            </div>
-
-          </div>
-
-          @if (
-            analysis.analysis.missing_skills.length > 0
-          ) {
-
-            <div class="skill-tags">
-
-              @for (
-                skill of analysis.analysis.missing_skills;
-                track skill
-              ) {
-
-                <span class="skill-tag">
-                  {{ skill }}
-                </span>
-
-              }
-
-            </div>
-
-          } @else {
-
-            <div class="empty-state">
-              No important missing skills detected.
-            </div>
-
-          }
-
-        </section>
-
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
       </div>
 
-
-      <!-- =================================================
-           SKILLS MATCH
-      ================================================== -->
-
-      <section class="result-card skills-card">
-
-        <div class="result-card-title">
-
-          <div class="title-icon blue">
-            ✦
-          </div>
-
-          <div>
-
-            <h2>
-              Skills match
-            </h2>
-
-            <p>
-              Compatibility between your CV and the role
-            </p>
-
-          </div>
-
-        </div>
-
-
-        @if (
-          analysis.analysis.skills_match.length > 0
-        ) {
-
-          <div class="skills-list">
-
-            @for (
-              item of analysis.analysis.skills_match;
-              track item.skill
-            ) {
-
-              <div class="skill-row">
-
-                <div class="skill-name">
-                  {{ item.skill }}
-                </div>
-
-                <div class="skill-progress">
-
-                  <div class="progress-track">
-
-                    <div
-                      class="progress-bar"
-                      [class.strong]="item.status === 'strong'"
-                      [class.partial]="item.status === 'partial'"
-                      [class.missing]="item.status === 'missing'"
-                      [style.width.%]="
-                        getSkillWidth(item.status)
-                      "
-                    ></div>
-
-                  </div>
-
-                </div>
-
-                <div
-                  class="skill-status"
-                  [class.strong]="item.status === 'strong'"
-                  [class.partial]="item.status === 'partial'"
-                  [class.missing]="item.status === 'missing'"
-                >
-
-                  {{ item.status }}
-
-                </div>
-
-              </div>
-
-            }
-
-          </div>
-
-        } @else {
-
-          <div class="empty-state">
-            No skills were analyzed.
-          </div>
-
-        }
-
-      </section>
-
-
-      <!-- =================================================
-           RECOMMENDATIONS
-      ================================================== -->
-
-      <section class="result-card">
-
-        <div class="result-card-title">
-
-          <div class="title-icon purple">
-            →
-          </div>
-
-          <div>
-
-            <h2>
-              Recommendations
-            </h2>
-
-            <p>
-              Actions to improve your career match
-            </p>
-
-          </div>
-
-        </div>
-
-
-        @if (
-          analysis.analysis.recommendations.length > 0
-        ) {
-
-          <div class="recommendations">
-
-            @for (
-              recommendation of analysis.analysis.recommendations;
-              track recommendation;
-              let i = $index
-            ) {
-
-              <div class="recommendation">
-
-                <span>
-                  {{ (i + 1).toString().padStart(2, '0') }}
-                </span>
-
-                <p>
-                  {{ recommendation }}
-                </p>
-
-              </div>
-
-            }
-
-          </div>
-
-        } @else {
-
-          <div class="empty-state">
-            No additional recommendations.
-          </div>
-
-        }
-
-      </section>
-
-
-      <!-- =================================================
-           CV IMPROVEMENTS
-      ================================================== -->
-
-      <section class="result-card">
-
-        <div class="result-card-title">
-
-          <div class="title-icon orange">
-            ✎
-          </div>
-
-          <div>
-
-            <h2>
-              CV improvements
-            </h2>
-
-            <p>
-              Suggestions to make your resume stronger
-            </p>
-
-          </div>
-
-        </div>
-
-
-        @if (
-          analysis.analysis.cv_improvements.length > 0
-        ) {
-
-          <div class="improvements">
-
-            @for (
-              improvement of analysis.analysis.cv_improvements;
-              track improvement
-            ) {
-
-              <div class="improvement">
-
-                <span>
-                  +
-                </span>
-
-                <p>
-                  {{ improvement }}
-                </p>
-
-              </div>
-
-            }
-
-          </div>
-
-        } @else {
-
-          <div class="empty-state">
-            No additional improvements identified.
-          </div>
-
-        }
-
-      </section>
-
-
-      <!-- =================================================
-           FOOTER ACTION
-      ================================================== -->
-
-      <div class="result-footer">
-
-        <button
-          type="button"
-          class="new-analysis-button large"
-          (click)="newAnalysis()"
-        >
-          Analyze another resume →
-        </button>
-
-      </div>
+      <div class="skeleton skeleton-card-lg"></div>
 
     </main>
 
   }
 
 
-  <!-- =====================================================
+  <!-- ============================================================
        FOOTER
-  ====================================================== -->
+  ============================================================ -->
 
   <footer class="footer">
-
-    <span>
-      Sathtern Resume Analyzer
-    </span>
-
-    <span>
-      AI-powered career insights
-    </span>
-
+    <span>Sathtern Resume Analyzer</span>
   </footer>
 
 </div>

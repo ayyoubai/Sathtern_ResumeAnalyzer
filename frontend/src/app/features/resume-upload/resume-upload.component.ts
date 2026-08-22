@@ -1,31 +1,30 @@
 import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import { ResumeService } from '../../core/services/resume.service';
-import { ResumeAnalysisResponse } from '../../core/models/resume-analysis.model';
+import { ResumeAnalysisStateService } from '../../core/services/resume.analysis.state.service'
 
 @Component({
   selector: 'app-resume-upload',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './resume-upload.component.html',
   styleUrl: './resume-upload.component.scss'
 })
 export class ResumeUploadComponent {
 
   private readonly resumeService = inject(ResumeService);
+  private readonly resumeState = inject(ResumeAnalysisStateService);
+  private readonly router = inject(Router);
 
   selectedFile: File | null = null;
-
   uploading = false;
   analyzing = false;
-
-  analysis: ResumeAnalysisResponse | null = null;
-
   error: string | null = null;
 
   targetRole = 'Full Stack Developer';
-
   isDragging = false;
 
   readonly roles = [
@@ -41,271 +40,111 @@ export class ResumeUploadComponent {
     'Cybersecurity Engineer'
   ];
 
-  // =====================================================
+  // ============================================================
   // FILE SELECTION
-  // =====================================================
+  // ============================================================
 
   onFileSelected(event: Event): void {
-
     const input = event.target as HTMLInputElement;
-
-    if (!input.files || input.files.length === 0) {
-      return;
-    }
-
+    if (!input.files || input.files.length === 0) return;
     this.handleFile(input.files[0]);
   }
 
-  // =====================================================
-  // FILE HANDLING
-  // =====================================================
-
   private handleFile(file: File): void {
-
     if (
       file.type !== 'application/pdf' &&
       !file.name.toLowerCase().endsWith('.pdf')
     ) {
-
       this.error = 'Please select a PDF file.';
       this.selectedFile = null;
-
       return;
     }
-
     this.selectedFile = file;
     this.error = null;
-    this.analysis = null;
   }
 
-  // =====================================================
+  // ============================================================
   // DRAG & DROP
-  // =====================================================
+  // ============================================================
 
   onDragOver(event: DragEvent): void {
-
     event.preventDefault();
-
     this.isDragging = true;
   }
 
   onDragLeave(event: DragEvent): void {
-
     event.preventDefault();
-
     this.isDragging = false;
   }
 
   onDrop(event: DragEvent): void {
-
     event.preventDefault();
-
     this.isDragging = false;
-
     const files = event.dataTransfer?.files;
-
-    if (!files || files.length === 0) {
-      return;
-    }
-
+    if (!files || files.length === 0) return;
     this.handleFile(files[0]);
   }
 
-  // =====================================================
+  // ============================================================
   // REMOVE FILE
-  // =====================================================
+  // ============================================================
 
   removeFile(): void {
-
     this.selectedFile = null;
     this.error = null;
-    this.analysis = null;
   }
 
-  // =====================================================
-  // ANALYZE
-  // =====================================================
+  // ============================================================
+  // UPLOAD + ANALYZE, PUIS NAVIGATION VERS LA PAGE RESULTATS
+  // ============================================================
 
   uploadAndAnalyze(): void {
-
     if (!this.selectedFile) {
-
       this.error = 'Please select your resume first.';
-
       return;
     }
-
     if (!this.targetRole) {
-
       this.error = 'Please select a target position.';
-
       return;
     }
+
+    const fileName = this.selectedFile.name;
 
     this.uploading = true;
     this.analyzing = false;
     this.error = null;
-    this.analysis = null;
 
-    this.resumeService
-      .uploadResume(this.selectedFile)
-      .subscribe({
-
-        next: (uploadResponse) => {
-
-          const resumeId = uploadResponse?.resume_id;
-
-          if (!resumeId) {
-
-            this.uploading = false;
-
-            this.error =
-              'The server did not return a resume ID.';
-
-            return;
-          }
-
+    this.resumeService.uploadResume(this.selectedFile).subscribe({
+      next: (uploadResponse) => {
+        const resumeId = uploadResponse?.resume_id;
+        if (!resumeId) {
           this.uploading = false;
-          this.analyzing = true;
-
-          this.resumeService
-            .analyzeResume(
-              resumeId,
-              this.targetRole
-            )
-            .subscribe({
-
-              next: (response) => {
-
-                this.analysis = response;
-
-                this.analyzing = false;
-
-                setTimeout(() => {
-                  document
-                    .getElementById('analysis-result')
-                    ?.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'start'
-                    });
-                }, 100);
-              },
-
-              error: (err) => {
-
-                console.error(
-                  'ANALYSIS ERROR:',
-                  err
-                );
-
-                this.analyzing = false;
-
-                this.error =
-                  'The resume was uploaded, but the analysis failed.';
-              }
-
-            });
-        },
-
-        error: (err) => {
-
-          console.error(
-            'UPLOAD ERROR:',
-            err
-          );
-
-          this.uploading = false;
-          this.analyzing = false;
-
-          this.error =
-            'Unable to upload the resume.';
+          this.error = 'The server did not return a resume ID.';
+          return;
         }
 
-      });
-  }
+        this.uploading = false;
+        this.analyzing = true;
 
-  // =====================================================
-  // NEW ANALYSIS
-  // =====================================================
-
-  newAnalysis(): void {
-
-    this.selectedFile = null;
-    this.analysis = null;
-    this.error = null;
-    this.uploading = false;
-    this.analyzing = false;
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
+        this.resumeService.analyzeResume(resumeId, this.targetRole).subscribe({
+          next: (response) => {
+            this.analyzing = false;
+            this.resumeState.setResult(fileName, response);
+            this.router.navigate(['/analysis']);
+          },
+          error: (err) => {
+            console.error('ANALYSIS ERROR:', err);
+            this.analyzing = false;
+            this.error = 'The resume was uploaded, but the analysis failed.';
+          }
+        });
+      },
+      error: (err) => {
+        console.error('UPLOAD ERROR:', err);
+        this.uploading = false;
+        this.analyzing = false;
+        this.error = 'Unable to upload the resume.';
+      }
     });
-  }
-
-  // =====================================================
-  // SCORE LABEL
-  // =====================================================
-
-  get scoreLabel(): string {
-
-    const score =
-      this.analysis?.analysis.match_score ?? 0;
-
-    if (score >= 80) {
-      return 'Excellent match';
-    }
-
-    if (score >= 60) {
-      return 'Good match';
-    }
-
-    if (score >= 40) {
-      return 'Moderate match';
-    }
-
-    return 'Needs improvement';
-  }
-
-  // =====================================================
-  // SCORE CLASS
-  // =====================================================
-
-  get scoreClass(): string {
-
-    const score =
-      this.analysis?.analysis.match_score ?? 0;
-
-    if (score >= 80) {
-      return 'excellent';
-    }
-
-    if (score >= 60) {
-      return 'good';
-    }
-
-    if (score >= 40) {
-      return 'moderate';
-    }
-
-    return 'low';
-  }
-
-  // =====================================================
-  // SKILL WIDTH
-  // =====================================================
-
-  getSkillWidth(status: string): number {
-
-    switch (status) {
-
-      case 'strong':
-        return 100;
-
-      case 'partial':
-        return 55;
-
-      default:
-        return 0;
-    }
   }
 }

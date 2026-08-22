@@ -1,0 +1,353 @@
+<div class="page">
+
+  <div class="scroll-progress-bar" [style.width.%]="scrollProgress"></div>
+
+  <!-- ============================================================
+       HEADER
+  ============================================================ -->
+
+  <header class="header scrolled">
+
+    <div class="brand">
+
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+
+      <div>
+        <div class="brand-name">Sathtern</div>
+        <div class="brand-product">Resume Analyzer</div>
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- ============================================================
+       ANALYSIS RESULTS
+  ============================================================ -->
+
+  @if (analysis) {
+
+    <main id="analysis-result" class="results-page">
+
+      <!-- RESULT HEADER -->
+
+      <div class="results-top reveal">
+
+        <div>
+          <div class="eyebrow">
+            <span class="eyebrow-dot"></span>
+            RESUME ANALYSIS
+          </div>
+          <h1>Your resume results</h1>
+          <p>
+            AI-powered compatibility analysis for
+            <strong>{{ analysis.analysis.target_role }}</strong>
+          </p>
+        </div>
+
+        <button type="button" class="new-analysis-button" (click)="newAnalysis()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+          New analysis
+        </button>
+
+      </div>
+
+
+      <!-- RESUME META -->
+
+      <div class="resume-meta reveal">
+
+        <div class="resume-file-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+
+        <div>
+          <strong>{{ fileName }}</strong>
+          <span>Target position: {{ analysis.analysis.target_role }}</span>
+        </div>
+
+      </div>
+
+
+      <!-- SCORE CARD -->
+
+      <section class="score-card reveal">
+
+        <div class="score-info">
+          <div class="section-label">OVERALL MATCH</div>
+          <h2>{{ scoreLabel }}</h2>
+          <p>
+            Your resume matches
+            <strong>{{ analysis.analysis.match_score }}%</strong>
+            of the skills expected for this position.
+          </p>
+        </div>
+
+        <div class="score-circle" [class]="scoreClass" [style.--score]="analysis.analysis.match_score">
+          <div class="score-circle-inner">
+            <strong>{{ animatedScore }}</strong>
+            <span>/ 100</span>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- STRENGTHS + MISSING SKILLS -->
+
+      <div class="results-grid">
+
+        <section class="result-card reveal" style="animation-delay: 0.1s">
+
+          <div class="result-card-title">
+            <div class="title-icon success">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div>
+              <h2>Strengths</h2>
+              <p>What makes your profile relevant</p>
+            </div>
+          </div>
+
+          @if (analysis.analysis.strengths.length > 0) {
+            <ul class="result-list">
+              @for (strength of analysis.analysis.strengths; track strength) {
+                <li>
+                  <span class="list-check">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </span>
+                  {{ strength }}
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="empty-state">No strengths identified.</div>
+          }
+
+        </section>
+
+
+        <section class="result-card reveal" style="animation-delay: 0.2s">
+
+          <div class="result-card-title">
+            <div class="title-icon warning">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div>
+              <h2>Missing skills</h2>
+              <p>Skills worth developing</p>
+            </div>
+          </div>
+
+          @if (analysis.analysis.missing_skills.length > 0) {
+            <div class="skill-tags">
+              @for (skill of analysis.analysis.missing_skills; track skill) {
+                <span class="skill-tag">{{ skill }}</span>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">No important missing skills detected.</div>
+          }
+
+        </section>
+
+      </div>
+
+
+      <!-- SKILLS MATCH -->
+
+      <section class="result-card skills-card reveal" style="animation-delay: 0.3s">
+
+        <div class="result-card-title">
+          <div class="title-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
+          <div>
+            <h2>Skills match</h2>
+            <p>Compatibility between your CV and the role</p>
+          </div>
+        </div>
+
+        @if (analysis.analysis.skills_match.length > 0) {
+          <div class="skills-list">
+            @for (item of analysis.analysis.skills_match; track item.skill) {
+              <div class="skill-row">
+                <div class="skill-name">{{ item.skill }}</div>
+                <div class="skill-progress">
+                  <div class="progress-track">
+                    <div
+                      class="progress-bar"
+                      [class.strong]="item.status === 'strong'"
+                      [class.partial]="item.status === 'partial'"
+                      [class.missing]="item.status === 'missing'"
+                      [style.width.%]="getSkillWidth(item.status)"
+                    ></div>
+                  </div>
+                </div>
+                <div
+                  class="skill-status"
+                  [class.strong]="item.status === 'strong'"
+                  [class.partial]="item.status === 'partial'"
+                  [class.missing]="item.status === 'missing'"
+                >
+                  @if (item.status === 'strong') {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  } @else {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  }
+                  {{ item.status }}
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No skills were analyzed.</div>
+        }
+
+      </section>
+
+
+      <!-- RECOMMENDATIONS -->
+
+      <section class="result-card reveal" style="animation-delay: 0.4s">
+
+        <div class="result-card-title">
+          <div class="title-icon purple">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </div>
+          <div>
+            <h2>Recommendations</h2>
+            <p>Actions to improve your career match</p>
+          </div>
+        </div>
+
+        @if (analysis.analysis.recommendations.length > 0) {
+          <div class="recommendations">
+            @for (recommendation of analysis.analysis.recommendations; track recommendation; let i = $index) {
+              <div class="recommendation">
+                <span class="rec-number">{{ (i + 1).toString().padStart(2, '0') }}</span>
+                <p>{{ recommendation }}</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No additional recommendations.</div>
+        }
+
+      </section>
+
+
+      <!-- CV IMPROVEMENTS -->
+
+      <section class="result-card reveal" style="animation-delay: 0.5s">
+
+        <div class="result-card-title">
+          <div class="title-icon orange">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </div>
+          <div>
+            <h2>CV improvements</h2>
+            <p>Suggestions to make your resume stronger</p>
+          </div>
+        </div>
+
+        @if (analysis.analysis.cv_improvements.length > 0) {
+          <div class="improvements">
+            @for (improvement of analysis.analysis.cv_improvements; track improvement) {
+              <div class="improvement">
+                <span class="imp-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                </span>
+                <p>{{ improvement }}</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">No additional improvements identified.</div>
+        }
+
+      </section>
+
+
+      <!-- FOOTER ACTION -->
+
+      <div class="result-footer reveal" style="animation-delay: 0.6s">
+        <button type="button" class="new-analysis-button large" (click)="newAnalysis()">
+          Analyze another resume
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </div>
+
+    </main>
+
+  }
+
+
+  <!-- FOOTER -->
+
+  <footer class="footer">
+    <span>Sathtern Resume Analyzer</span>
+  </footer>
+
+
+  <!-- BACK TO TOP -->
+
+  @if (showBackToTop) {
+    <button
+      type="button"
+      class="back-to-top"
+      (click)="scrollToTop()"
+      title="Back to top"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </button>
+  }
+
+</div>
